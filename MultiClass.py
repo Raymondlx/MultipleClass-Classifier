@@ -6,17 +6,21 @@ from sklearn.preprocessing import scale
 from sklearn import metrics
 from sklearn.linear_model import SGDClassifier
 import numpy as np
+from sklearn.preprocessing import label_binarize
+from sklearn import svm, datasets
+from sklearn.multiclass import OneVsRestClassifier
+from array import array
 
 
 def loadinfor():
     # load from local
-    with open('./animal','r') as infile:
+    with open('./data/animal.temp','r') as infile:
         test1 = infile.readlines()
 
-    with open('./color','r') as infile:
+    with open('./data/color.temp','r') as infile:
         test2 = infile.readlines()
 
-    with open('./language', 'r') as infile:
+    with open('./data/science.temp', 'r') as infile:
         test3 = infile.readlines()
 
     return test1, test2, test3
@@ -27,12 +31,13 @@ def numpyProcess(t1,t2,t3,number):
     number_color = number
     number_language = number
 
-    tag_animal = [1.0 for i in range(number)]
-    tag_color = [2.0 for i in range(number)]
-    tag_language = [3.0 for i in range(number)]
+    tag_animal = [1 for i in range(number)]
+    tag_color = [2 for i in range(number)]
+    tag_language = [3 for i in range(number)]
 
     y = np.concatenate((tag_animal,tag_color,tag_language))
-    x_train, x_test, y_train, y_test = train_test_split(np.concatenate((t1,t2,t3)), y, test_size=0.8)
+    # y = label_binarize(y, classes=[0, 1, 2])
+    x_train, x_test, y_train, y_test = train_test_split(np.concatenate((t1,t2,t3)), y, test_size=0.5)
 
     # # use 1 and 0 to build the array,[1,1,...,0,0]
     # y = np.concatenate((np.ones(number_pos),np.zeros(number_neg)))
@@ -45,6 +50,10 @@ def cleanText(corpus):
 
     corpus = [z.lower().replace('\n','').split() for z in corpus]
     return corpus
+def covertTag(tag):
+
+    tag = [z for z in tag]
+    return tag
 
 def builVocab(dim,x_train):
 
@@ -82,16 +91,20 @@ def calculate_result(actual,pred):
     print 'F1-score:{0:.3f}'.format(metrics.f1_score(actual,pred))
 
 def sgdClassifier(train_vecs,test_vecs,y_test,y_train):
-    lr = SGDClassifier(loss='log', penalty='l1')
+    lr = OneVsRestClassifier(estimator=svm.SVC(random_state=0))
+
     # map trained vectors with its tags
     lr.fit(train_vecs, y_train)
     # predict untagged context
     print '-------------------------------------'
-    print text_test
+    # print text_test
     pred = lr.predict(test_vecs)
-    output = {i:[pred[i],text_test[i]] for i in range(len(pred))}
+    # pred2 = np.array(pred)
+    # output = {i:[pred[i],text_test[i]] for i in range(len(pred))}
+
+    print y_test
     print pred
-    print output
+    # print output
 
     print 'SGDClassifier Test Accuracy: %.2f' % lr.score(test_vecs, y_test)
     # calculate_result(y_test,pred)
@@ -100,15 +113,17 @@ def sgdClassifier(train_vecs,test_vecs,y_test,y_train):
 if __name__ == "__main__":
     # load infor
     t1, t2, t3 = loadinfor()
-    text_train, text_test, tag_train, tag_test = numpyProcess(t1, t2,t3,6)
-    # print text_train
-    # print tag_train
-    # print text_test
-    # print tag_test
+    text_train, text_test, tag_train, tag_test = numpyProcess(t1, t2, t3, 50)
+    print text_train
+    print tag_train
+     # print text_test
+     # print tag_test
 
     # cleanText
     text_train = cleanText(text_train)
     text_test = cleanText(text_test)
+
+
     # print text_train
     # print tag_train
     # print text_test
@@ -123,13 +138,17 @@ if __name__ == "__main__":
     vocab.train(text_test)
     test_vec = scaleVec(vocab,text_test,300)
 
+
+
+
+
     # add-on
     sgdClassifier(train_vec, test_vec, tag_test, tag_train)
 
-    print text_train
-    print tag_train
-    print text_test
-    print tag_test
+    # print text_train
+    # print tag_train
+    # print text_test
+    # print tag_test
 
     # ---------------------------------------------
     # # load file and clean it
