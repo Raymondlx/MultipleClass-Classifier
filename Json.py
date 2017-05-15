@@ -1,5 +1,6 @@
 # encoding=utf-8
 import json
+# by doing this, could write in Chinese words
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
