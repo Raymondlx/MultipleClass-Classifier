@@ -22,20 +22,23 @@ def LoadSingle(path,doc,max):
         for line in jsonFile.readlines():
             data = json.loads(line)
             if count<max :
-                SegWord(data["Content"],path,doc,max)
-                count += 1
+                if SegWord(data["Content"],path,doc,max) == True:
+                    count += 1
 
             # print data["Content"]
 
 def SegWord(sentence,path,doc,max):
-
-    seg_list = jieba.cut(sentence)
-    list =  str("\t".join(seg_list))
-    newPath = os.path.join('./','Corpus')
-    if not os.path.isdir(newPath):
-        os.mkdir(newPath)
-    with open('./Corpus/'+doc.strip('.json')+'_'+str(max),'a') as OutputFile:
-         OutputFile.write(list+'\n')
+    if sentence != '\n' and sentence.strip()!="":
+        seg_list = jieba.cut(sentence)
+        list =  str("\t".join(seg_list))
+        newPath = os.path.join('./','Corpus')
+        if not os.path.isdir(newPath):
+            os.mkdir(newPath)
+        with open('./Corpus/'+doc.strip('.json')+'_'+str(max),'a') as OutputFile:
+            OutputFile.write(list+'\n')
+        return True
+    else:
+        return False
 
     # seg_list = jieba.cut("我来到北京清华大学", cut_all=True)
     # print "Full Mode:", "\t".join(seg_list)  # 全模式
@@ -48,6 +51,6 @@ def SegWord(sentence,path,doc,max):
 
 if __name__ == "__main__":
     path = './qqnews_ent'
-    max = 2000
+    max = 1000
     LoadMulti(path,max)
     # SegWord()
